@@ -14,16 +14,9 @@ WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-RUN mkdir -p database storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
-RUN touch database/database.sqlite
-RUN php artisan migrate --force
+RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
 RUN php artisan route:cache
-
-# Don't cache config — env vars are injected at runtime by Coolify
-# Don't use artisan serve in production — it's single-threaded and hangs on concurrent requests
-# Use PHP's built-in server with multiple workers instead
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php artisan config:clear && PHP_CLI_SERVER_WORKERS=4 php artisan serve --host=0.0.0.0 --port=8080"]
+CMD ["sh", "-c", "mkdir -p database && touch database/database.sqlite && php artisan config:clear && php artisan migrate --force && PHP_CLI_SERVER_WORKERS=4 php artisan serve --host=0.0.0.0 --port=8080"]
